@@ -11,19 +11,17 @@ jobs:
       # Checkout code
     - uses: actions/checkout@main
 
-      # Log into Azure
+      # Log into Azure using Open ID connect
     - uses: azure/login@v1
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+       creds: '${{ secrets.AZURE_CRED }}'
 
       # Deploy Bicep file
     - name: deploy
       uses: azure/arm-deploy@v1
       with:
-        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
-        resourceGroupName: ${{ secrets.AZURE_RG }}
-        template: ./main.bicep
-        parameters: 'storagePrefix=mystore storageSKU=Standard_LRS'
-        failOnStdErr: false
+        InlineScript: |
+          az deployment sub validate \
+          --name validate-${{ github.run_id }} \
+          --template-file main.bicep \
+          --location $LOCATION
